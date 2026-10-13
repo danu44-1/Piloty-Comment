@@ -1,5 +1,12 @@
 # AI_LOG.md
 
+## 2026-10-13 21:18 WIB · Gemini 3.1 Pro - Tugas Keamanan Komputasi dan Siber (tag sec-0.1)
+- Tujuan: Mengidentifikasi aset, membuat DFD, merumuskan 10 ancaman STRIDE, serta menyusun risk register untuk Piloty Comment.
+- Prompt ringkas: "Perbaruan asset-inventory.md dan dfd.md sesuai produk... Gambar DFD dengan ID elemen... Tulis minimal 10 threat STRIDE... Nilai kemungkinan... pilih 5 prioritas di risk-register.md... Beri penanda sec-0.1"
+- Bagian yang dipakai: Pengetahuan arsitektur web Piloty Comment (Next.js), lingkungan *single-tenant*, serta modul Kriptografi Python (Tugas 1) yang diintegrasikan ke DFD.
+- Yang diubah: Pembuatan empat dokumen keamanan baru (`asset-inventory.md`, `dfd.md`, `threat-model.md`, `risk-register.md`) di dalam direktori `security/`.
+- Cara memeriksa: Mengevaluasi konsistensi ID elemen aset (DA, SW, HW) dan ID DFD (E, P, D, TB) melintasi dokumen Threat Model, serta memeriksa apakah rencana kontrol di Risk Register sudah dipetakan dengan relevan ke Tugas 2 atau Tugas 3.
+
 ## 2026-10-13 07:34 WIB · Gemini 3.1 Pro & GPT-5.6 Luna - Tugas Pengembangan Aplikasi Web (tag v0.1)
 - Tujuan: Mengintegrasikan konsep produk, arsitektur, dan dokumentasi antarmuka dari *source code* `page.tsx` ke dalam `README.md`.
 - Prompt ringkas: "sesuaikan pada file README.md sebelumnya... Penambahan meliputi konsep produk... serta petunjuk menjalankan aplikasi... tanpa ada perubahan isi dan tujuan bagian Kriptografi sebelumnya"
