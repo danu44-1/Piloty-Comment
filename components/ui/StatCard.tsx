@@ -1,0 +1,4 @@
+export default function StatCard({ label, value, detail, icon, color }: { label: string; value: number; detail: string; icon: string; color: "slate" | "red" | "amber" | "green" }) {
+  const colors = { slate: "bg-slate-100 text-slate-600", red: "bg-red-50 text-red-600", amber: "bg-amber-50 text-amber-600", green: "bg-emerald-50 text-emerald-600" };
+  return <div className="soft-shadow rounded-2xl border border-slate-100 bg-white p-5"><div className="mb-5 flex items-center justify-between"><p className="text-sm font-medium text-slate-500">{label}</p><div className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg ${colors[color]}`}>{icon}</div></div><p className="text-3xl font-bold tracking-tight text-slate-900">{value.toLocaleString()}</p><p className="mt-2 text-xs text-slate-400">{detail}</p></div>;
+}

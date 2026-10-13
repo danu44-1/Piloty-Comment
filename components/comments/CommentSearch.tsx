@@ -1,0 +1,1 @@
+export default function CommentSearch({ value, onChange }: { value: string; onChange: (value: string) => void }) { return <input value={value} onChange={(event) => onChange(event.target.value)} placeholder="Search comments..." className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-red-400 sm:max-w-xs" />; }
