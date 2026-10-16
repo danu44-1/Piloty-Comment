@@ -13,12 +13,12 @@ export default function Dashboard() {
   const { comments } = useModerationContext();
 
   return (
-    <div className="mx-auto max-w-[1500px] space-y-7 p-5 sm:p-8">
+    <div className="mx-auto w-full min-w-0 max-w-[1500px] space-y-7 p-5 sm:p-8">
       <DemoNotice />
       <StatsGrid comments={comments} />
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <RecentComments />
-        <div className="space-y-6">
+      <div className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(340px,1fr)]">
+        <div className="min-w-0"><RecentComments /></div>
+        <div className="min-w-0 space-y-6">
           <RecentVideos />
           <ModerationRulesSummary />
         </div>
