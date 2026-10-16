@@ -8,6 +8,8 @@ export type Comment = {
   time: string;
   status: CommentStatus;
   reason: string;
+  /** Optional video association used by the video-detail demo route. */
+  videoId?: string;
 };
 
 export type RuleId = "spam" | "links" | "words" | "review";
@@ -20,4 +22,4 @@ export type ModerationRule = {
 };
 
 export type CommentFilter = "All" | CommentStatus;
-export type AppTab = "Overview" | "Comments" | "Rules";
+export type AppTab = "Overview" | "Videos" | "Comments" | "Rules";
