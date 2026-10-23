@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { getFeaturedVideos } from "@/lib/utils/video";
+import type { Video } from "@/lib/types/video";
 
-export default function RecentVideos() {
-  const videos = getFeaturedVideos(2);
-
+export default function RecentVideos({ videos }: { videos: Video[] }) {
   return (
     <section className="soft-shadow flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 sm:p-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">

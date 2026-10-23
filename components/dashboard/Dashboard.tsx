@@ -8,8 +8,9 @@ import ModerationRulesSummary from "@/components/dashboard/ModerationRulesSummar
 import DashboardGuide from "@/components/dashboard/DashboardGuide";
 import Footer from "@/components/layout/Footer";
 import { useModerationContext } from "@/components/moderation/ModerationProvider";
+import type { Video } from "@/lib/types/video";
 
-export default function Dashboard() {
+export default function Dashboard({ featuredVideos }: { featuredVideos: Video[] }) {
   const { comments } = useModerationContext();
 
   return (
@@ -19,7 +20,7 @@ export default function Dashboard() {
       <div className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(340px,1fr)]">
         <div className="min-w-0"><RecentComments /></div>
         <div className="min-w-0 space-y-6">
-          <RecentVideos />
+          <RecentVideos videos={featuredVideos} />
           <ModerationRulesSummary />
         </div>
       </div>

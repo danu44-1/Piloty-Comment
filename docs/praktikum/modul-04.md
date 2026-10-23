@@ -81,7 +81,10 @@ Berkas khusus yang relevan pada source tree:
 `app/video/loading.tsx` sekarang menyediakan skeleton tiga kartu video, `aria-busy="true"`, dan status aksesibel. `app/video/error.tsx` merupakan Client Component dengan `role="alert"`, tombol Try again yang memanggil `retry()`, tautan kembali ke katalog, serta pesan error teknis yang hanya ditampilkan saat development. Runtime error boundary tidak dipaksa melalui route uji tambahan karena scope produk dibatasi pada `app/` yang sudah ada.
 
 ![loading](../image/img_praktikum/week-4/loading.png)
-![loading](../image/img_praktikum/week-4/error.png)
+Uji lambat terjadi load dengan preview 3 card
+
+![error](../image/img_praktikum/week-4/error.png)
+Uji error
 
 ## 3. Rute Dinamis dan Validasi params
 
@@ -130,17 +133,17 @@ Validasi ini bersifat allow-list berbasis data dan case-sensitive. Belum ada val
 | components/comments/CommentsPage.tsx                                        | Client Component       | Memakai useMemo, filter, pencarian, dan aksi perubahan status.                                                              |
 | components/rules/RulesPage.tsx dan components/rules/KeywordManager.tsx      | Client Components      | Memakai context, input form, toggle, dan event handler.                                                                     |
 | components/video/VideoPage.tsx dan components/video/VideoDetail.tsx         | Server Components      | Merender data video; VideoDetail dapat merender child Client Component tanpa harus menjadi Client Component.                |
-| lib/data/\*.ts dan lib/utils/video.ts                                       | Modul TypeScript biasa | Tidak memiliki import "server-only"; modul dapat masuk ke graph server maupun client bergantung pada importer.              |
+| lib/data.ts                                                                 | Server-only data layer | Memiliki `import "server-only"`; mengambil data katalog video dan hanya digunakan oleh Server Components.                 |
+| lib/data/\*.ts                                                              | Modul data demo        | Menyimpan array demo; belum menjadi query database dan tidak diimpor langsung oleh Client Components.                     |
+| lib/utils/video.ts                                                          | Server-only compatibility layer | Meneruskan fungsi ke `lib/data.ts` untuk caller lama dan tetap berada di graph server.                              |
 
 ### Hasil uji impor lib/data.ts (server-only) dari Client Component
 
-Uji persis seperti yang diminta **belum dapat dilakukan**, karena:
+Uji boundary berhasil dilakukan dengan membuat Client Component probe sementara yang mengimpor `@/lib/data`. Build gagal sesuai harapan dengan pesan bahwa modul yang bergantung pada `server-only` hanya dapat digunakan dari Server Component. Import trace menunjuk ke `app/server-only-probe/page.tsx` lalu `lib/data.ts`.
 
-- Berkas lib/data.ts tidak ada; yang tersedia adalah lib/data/comments.ts, keywords.ts, rules.ts, dan videos.ts.
-- Dependency server-only dan penanda import "server-only" tidak ada pada package.json maupun modul data.
-- Bahkan hooks/useComments.ts adalah Client Component yang mengimpor lib/data/comments.ts, sehingga data komentar saat ini bukan modul server-only.
+Probe tersebut langsung dihapus setelah verifikasi dan tidak menjadi route produk. Build final kembali lulus. Di produk, `app/page.tsx`, `app/video/page.tsx`, dan `app/video/[id]/page.tsx` memanggil data layer di server, lalu hanya mengirim object `Video` yang serializable ke Client Components melalui props.
 
-Kesimpulannya, repositori belum menerapkan guard server-only. Tidak ada hasil build error untuk skenario tersebut karena tidak ada modul lib/data.ts yang ditandai server-only dan tidak ada Client Component uji yang mengimpornya.
+`hooks/useComments.ts` tetap menggunakan data demo client-side dari `lib/data/comments.ts`; modul tersebut belum diberi guard server-only karena fitur komentar saat ini masih dikelola oleh state client.
 
 ## 5. Verifikasi
 
@@ -191,13 +194,13 @@ LINT_EXIT_CODE=0
 
 ### Build
 
-Perintah script npm juga tidak dapat dimulai karena npm global rusak. Setelah font Google yang dipakai app/layout.tsx dapat diakses dan tersimpan di cache, executable lokal Next.js berhasil:
+Perintah script npm juga tidak dapat dimulai karena npm global rusak. Verifikasi produksi menggunakan fallback webpack Next.js setelah Turbopack gagal membuat worker PostCSS pada lingkungan ini:
 
 ```text
-node_modules\.bin\next.cmd build
-▲ Next.js 16.3.6 (Turbopack)
-✓ Compiled successfully in 4.3s
-✓ Generating static pages (7/7) in 865ms
+node_modules\.bin\next.cmd build --webpack
+▲ Next.js 16.3.6 (webpack)
+✓ Compiled successfully in 2.5s
+✓ Generating static pages using 9 workers (7/7) in 1311ms
 Route (app)
 ┌ ○ /
 ├ ○ /_not-found
@@ -212,6 +215,8 @@ EXIT_CODE=0
 
 Build tersebut juga mengompilasi `app/video/loading.tsx`, `app/video/error.tsx`, `app/video/[id]/not-found.tsx`, dan `app/not-found.tsx` tanpa error.
 
+Build Turbopack standar (`next build`) sempat gagal pada worker PostCSS dengan error internal `Failed to write app endpoint /page`; error terjadi pada `app/globals.css` sebelum validasi route. Build webpack berhasil menyelesaikan TypeScript, static generation, dan tabel route yang sama.
+
 Catatan: percobaan build pertama terblokir oleh EACCES saat mengambil Geist dan Geist Mono dari Google Fonts. Setelah akses jaringan diberikan untuk verifikasi, build berhasil tanpa perubahan source code.
 
 ## 6. Kendala dan Penyelesaian
@@ -220,20 +225,20 @@ Catatan: percobaan build pertama terblokir oleh EACCES saat mengambil Geist dan 
 2. **Build membutuhkan Google Fonts.** app/layout.tsx memakai Geist dan Geist_Mono dari next/font/google. Build awal gagal karena koneksi HTTPS diblokir. Penyelesaian verifikasi: izinkan koneksi saat build; build berikutnya lulus.
 3. **Berkas khusus App Router perlu dibatasi sesuai produk.** Penyelesaian: menambahkan `app/video/loading.tsx`, `app/video/error.tsx`, `app/video/[id]/not-found.tsx`, dan `app/not-found.tsx`. `template.tsx`, `/uji`, dan `global-error.tsx` tidak ditambahkan karena tidak diperlukan oleh alur produk dan berada di luar scope.
 4. **Perilaku status not-found pada route streaming.** `/video/unknown` mengembalikan status 200 setelah stream dimulai, tetapi UI segment khusus tetap tampil dan respons diberi `noindex`. Hasil tersebut dicatat apa adanya, bukan dipaksa menjadi status lain.
-5. **Guard server-only belum diterapkan.** Tidak ada lib/data.ts maupun import "server-only", sehingga pengujian boundary server-only tidak dapat dilakukan seperti spesifikasi modul.
+5. **Boundary server/client perlu dijaga.** Penyelesaian: menambahkan `lib/data.ts` dengan `import "server-only"`, memanggilnya dari Server Components, dan meneruskan data video ke Client Components melalui props serializable. Probe import ilegal membuktikan build menolaknya.
 6. **Bukti visual belum diarsipkan.** Screenshot sebelum/sesudah navigasi dan screenshot state loading/error masih perlu diambil manual jika diwajibkan untuk pengumpulan.
 
 ## 7. Catatan Pemanfaatan AI
 
-AI digunakan untuk membantu membaca instruksi modul, mengaudit App Router, mengimplementasikan berkas khusus pada `app/`, dan memperbarui dokumentasi ini.
+AI digunakan untuk membantu membaca instruksi modul, mengaudit App Router, mengimplementasikan berkas khusus pada `app/`, menerapkan server-only data layer, dan memperbarui dokumentasi ini.
 
 | Alat/perintah utama                               | Bagian yang digunakan                                                                                                                  | Cara memverifikasi                                                                        |
 | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Codex/GPT                                         | Membaca instruksi PDF, memetakan struktur App Router, merancang UI product-aligned untuk loading/error/not-found, dan menyusun laporan | Bandingkan setiap klaim dengan source code pada `app/`, tabel, dan pohon folder.          |
+| Codex/GPT                                         | Membaca instruksi PDF, memetakan struktur App Router, merancang UI product-aligned untuk loading/error/not-found, menerapkan DAL server-only, dan menyusun laporan | Bandingkan setiap klaim dengan source code pada `app/`, `lib/data.ts`, tabel, dan pohon folder. |
 | PowerShell Get-ChildItem, rg --files, Get-Content | Inventarisasi app/, komponen, konfigurasi, dan berkas khusus                                                                           | Ulangi perintah pada root repositori dan cek keberadaan setiap path.                      |
 | node_modules/.bin/tsc.cmd --noEmit                | Verifikasi tipe TypeScript                                                                                                             | Exit code 0.                                                                              |
 | node node_modules/eslint/bin/eslint.js app        | Verifikasi lint pada perubahan App Router                                                                                              | Exit code 0.                                                                              |
-| node_modules/.bin/next.cmd build                  | Verifikasi build dan tabel route                                                                                                       | Exit code 0 dan cocokkan keluaran Route (app).                                            |
-| next start -p 3001 + curl.exe                     | Verifikasi status route valid, invalid, not-found, dan redirect                                                                        | Cocokkan kode 200, 404, dan 308 pada tabel uji HTTP; cek `noindex` pada `/video/unknown`. |
+| node_modules/.bin/next.cmd build --webpack        | Verifikasi build produksi, server-only boundary, dan tabel route                                                                      | Exit code 0 dan cocokkan keluaran Route (app).                                            |
+| next start -p 3013 + curl.exe                    | Verifikasi server produksi dan status route video/not-found                                                                            | `/video/crypto-basics` 200, `/video/unknown` 200 + UI/noindex, URL tidak dikenal 404.     |
 
-AI menambahkan empat berkas khusus pada `app/` dan memperbarui file dokumentasi ini; tidak mengubah data atau komponen produk di luar scope tersebut. Screenshot dan field Nama/NIM tetap perlu dilengkapi secara manual jika diperlukan untuk pengumpulan.
+AI menambahkan data layer `lib/data.ts`, menyesuaikan alur props Server-to-Client, menambahkan dependency `server-only`, dan memperbarui dokumentasi ini; tidak melakukan commit atau push. Screenshot dan field Nama/NIM tetap perlu dilengkapi secara manual jika diperlukan untuk pengumpulan.
