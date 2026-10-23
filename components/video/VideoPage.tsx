@@ -1,9 +1,7 @@
 import VideoGrid from "@/components/video/VideoGrid";
-import { getVideos } from "@/lib/utils/video";
+import type { Video } from "@/lib/types/video";
 
-export default function VideoPage() {
-  const videos = getVideos();
-
+export default function VideoPage({ videos }: { videos: Video[] }) {
   return (
     <div className="mx-auto max-w-[1500px] space-y-7 p-5 sm:p-8">
       <section className="soft-shadow rounded-2xl border border-slate-100 bg-white p-5 sm:p-6">
