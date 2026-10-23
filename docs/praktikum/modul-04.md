@@ -153,9 +153,9 @@ npx tsc --noEmit
 Error: Cannot find module 'node_modules\npm\bin\npx-cli.js'
 EXIT_CODE=1
 
-![tsc](../image/img_praktikum/week-4/tsc.png)
 
 ```
+![tsc](../image/img_praktikum/week-4/tsc.png)
 
 Workaround yang memanggil compiler lokal proyek:
 
@@ -173,8 +173,8 @@ npm run lint
 Error: Cannot find module 'node_modules\npm\bin\npm-cli.js'
 EXIT_CODE=1
 
-![tsc](../image/img_praktikum/week-4/runLint.png)
 ```
+![lint](../image/img_praktikum/week-4/runLint.png)
 
 Verifikasi lint dengan executable lokal berhasil:
 
