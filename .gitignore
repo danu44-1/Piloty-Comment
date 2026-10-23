@@ -36,6 +36,7 @@ yarn-error.log*
 
 # server files
 __server-only-probe*
+app/server-only-probe*
 
 # vercel
 .vercel
