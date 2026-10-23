@@ -155,7 +155,10 @@ EXIT_CODE=1
 
 
 ```
+
 ![tsc](../image/img_praktikum/week-4/tsc.png)
+
+compiler tidak menghasilkan apapun
 
 Workaround yang memanggil compiler lokal proyek:
 
@@ -174,7 +177,10 @@ Error: Cannot find module 'node_modules\npm\bin\npm-cli.js'
 EXIT_CODE=1
 
 ```
+
 ![lint](../image/img_praktikum/week-4/runLint.png)
+
+compiler tidak menghasilkan apapun
 
 Verifikasi lint dengan executable lokal berhasil:
 
