@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 .env
 
+# server files
+__server-only-probe*
+
 # vercel
 .vercel
 
