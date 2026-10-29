@@ -18,7 +18,9 @@ function getPageMeta(pathname: string) {
 
 export default function AppShell({ children }: { children: ReactNode }) {
 	const pathname = usePathname();
-	if (pathname === "/masuk" || pathname === "/daftar") return <>{children}</>;
+	if (pathname === "/auth/login" || pathname === "/auth/signup") {
+		return <>{children}</>;
+	}
 	const { title, tab } = getPageMeta(pathname);
 
 	return (

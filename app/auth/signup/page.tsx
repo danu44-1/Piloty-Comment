@@ -28,7 +28,7 @@ export default function HalamanDaftar() {
 
         <FormDaftar />
 
-        <Link href="/masuk" className="mt-5 block text-center text-sm text-slate-400 hover:text-red-600">
+        <Link href="/auth/login" className="mt-5 block text-center text-sm text-slate-400 hover:text-red-600">
           Kembali ke halaman masuk
         </Link>
       </section>

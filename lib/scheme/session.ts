@@ -53,7 +53,7 @@ export async function bacaSesi(): Promise<Sesi | null> {
 
 export async function wajibSesi() {
   const sesi = await bacaSesi();
-  if (!sesi) redirect("/masuk");
+  if (!sesi) redirect("/auth/login");
   return sesi;
 }
 

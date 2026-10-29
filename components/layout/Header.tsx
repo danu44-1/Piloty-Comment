@@ -1,7 +1,7 @@
 "use client";
 
 import { useModerationContext } from "@/components/moderation/ModerationProvider";
-import { keluar } from "@/app/masuk/actions";
+import { keluar } from "@/app/auth/login/actions";
 
 export default function Header({ title, tab }: { title: string; tab: string }) {
 	const { scanning, runScan } = useModerationContext();

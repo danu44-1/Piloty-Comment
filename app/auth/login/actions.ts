@@ -44,5 +44,5 @@ export async function masuk(
 
 export async function keluar() {
   await hapusSesi();
-  redirect("/masuk");
+  redirect("/auth/login");
 }

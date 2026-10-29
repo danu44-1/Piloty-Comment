@@ -5,7 +5,7 @@ import type { NextRequest } from "next/server";
 // Validasi sesi sebenarnya tetap dilakukan di Server Component atau Server Action.
 export function proxy(request: NextRequest) {
   if (!request.cookies.has("sesi")) {
-    return NextResponse.redirect(new URL("/masuk", request.url));
+    return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
   return NextResponse.next();

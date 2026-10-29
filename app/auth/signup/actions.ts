@@ -42,5 +42,5 @@ export async function daftar(
     };
   }
 
-  redirect("/masuk?terdaftar=1");
+  redirect("/auth/login?terdaftar=1");
 }

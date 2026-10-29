@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { masuk } from "@/app/masuk/actions";
+import { masuk } from "@/app/auth/login/actions";
 import type { StatusForm } from "@/lib/status-form";
 
 const awal: StatusForm = {};
@@ -80,7 +80,7 @@ export default function FormMasuk({ pesanAwal }: { pesanAwal?: string }) {
 			<p className="text-center text-sm text-slate-500">
 				Belum punya akun?{" "}
 				<Link
-					href="/daftar"
+          href="/auth/signup"
 					className="font-semibold text-red-600 hover:text-red-700">
 					Daftar
 				</Link>
