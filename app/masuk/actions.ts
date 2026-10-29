@@ -2,9 +2,9 @@
 
 import { z } from "zod";
 import { redirect } from "next/navigation";
+import { verifikasiAkun } from "@/lib/data/account";
 import { skemaMasuk } from "@/lib/scheme/login";
 import { buatSesi, hapusSesi } from "@/lib/scheme/session";
-import { AKSES_DUMMY } from "@/lib/types/access";
 import type { StatusForm } from "@/lib/status-form";
 
 function nilaiEmail(formData: FormData) {
@@ -31,14 +31,7 @@ export async function masuk(
     };
   }
 
-  const emailDemo = process.env.DEMO_EMAIL ?? AKSES_DUMMY.email;
-  const kataSandiDemo = process.env.DEMO_KATA_SANDI ?? AKSES_DUMMY.kataSandi;
-
-  const kredensialBenar =
-    hasil.data.email.toLowerCase() === emailDemo.trim().toLowerCase() &&
-    hasil.data.kataSandi === kataSandiDemo;
-
-  if (!kredensialBenar) {
+  if (!verifikasiAkun(hasil.data.email, hasil.data.kataSandi)) {
     return {
       pesan: "Email atau kata sandi salah.",
       nilai,

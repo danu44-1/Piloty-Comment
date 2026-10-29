@@ -8,9 +8,14 @@ export const metadata: Metadata = {
   description: "Masuk ke dashboard moderasi komentar.",
 };
 
-export default async function HalamanMasuk() {
+export default async function HalamanMasuk({
+  searchParams,
+}: {
+  searchParams: Promise<{ terdaftar?: string }>;
+}) {
   const sesi = await bacaSesi();
   if (sesi) redirect("/");
+  const params = await searchParams;
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f8f9fc] px-5 py-10">
@@ -30,7 +35,13 @@ export default async function HalamanMasuk() {
           Masuk untuk membuka dashboard moderasi komentar Anda.
         </p>
 
-        <FormMasuk />
+        <FormMasuk
+          pesanAwal={
+            params.terdaftar === "1"
+              ? "Akun berhasil dibuat. Silakan masuk."
+              : undefined
+          }
+        />
       </section>
     </main>
   );
