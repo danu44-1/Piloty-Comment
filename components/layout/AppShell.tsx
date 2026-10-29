@@ -18,6 +18,7 @@ function getPageMeta(pathname: string) {
 
 export default function AppShell({ children }: { children: ReactNode }) {
 	const pathname = usePathname();
+	if (pathname === "/masuk") return <>{children}</>;
 	const { title, tab } = getPageMeta(pathname);
 
 	return (
