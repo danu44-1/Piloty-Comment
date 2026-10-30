@@ -2,7 +2,7 @@
 
 Nama/NIM : Danu Dimas Putra / 105224003
 
-Repositori : [danu44-1/Piloty-Comment](https://github.com/danu44-1/Piloty-Comment) — branch `week-5`
+Repositori : [danu44-1/Piloty-Comment](https://github.com/danu44-1/Piloty-Comment/tree/week-5) — branch `week-5`
 
 Versi yang diamati: Next.js 16.3.6, React 19, dan Zod 4.6.7. Implementasi login berada pada `/auth/login`, sedangkan pendaftaran berada pada `/auth/signup`.
 
