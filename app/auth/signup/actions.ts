@@ -32,7 +32,7 @@ export async function daftar(
     };
   }
 
-  const berhasil = buatAkun(hasil.data.email, hasil.data.kataSandi);
+  const berhasil = await buatAkun(hasil.data.email, hasil.data.kataSandi);
   if (!berhasil) {
     return {
       galat: {

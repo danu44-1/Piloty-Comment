@@ -1,35 +1,30 @@
 import "server-only";
 
-import crypto from "node:crypto";
+import { cache } from "react";
+import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { prisma } from "@/lib/db/prisma";
 
 export type Sesi = {
+  userId: number;
   email: string;
-  kedaluwarsa: number;
+  kedaluwarsa: Date;
 };
 
 const NAMA_COOKIE_SESI = "sesi";
 const DELAPAN_JAM = 60 * 60 * 8;
 
-type GlobalDenganPenyimpananSesi = typeof globalThis & {
-  __pilotyCommentSesi?: Map<string, Sesi>;
-};
+export async function buatSesi(userId: number) {
+  const uuid = randomUUID();
+  const kedaluwarsa = new Date(Date.now() + DELAPAN_JAM * 1000);
 
-const globalDenganPenyimpanan = globalThis as GlobalDenganPenyimpananSesi;
-const penyimpananSesi =
-  globalDenganPenyimpanan.__pilotyCommentSesi ?? new Map<string, Sesi>();
-
-globalDenganPenyimpanan.__pilotyCommentSesi = penyimpananSesi;
-
-export async function buatSesi(email: string) {
-  const id = crypto.randomUUID();
-  const kedaluwarsa = Date.now() + DELAPAN_JAM * 1000;
-
-  penyimpananSesi.set(id, { email, kedaluwarsa });
+  await prisma.session.create({
+    data: { uuid, userId, expiresAt: kedaluwarsa },
+  });
 
   const tokoCookie = await cookies();
-  tokoCookie.set(NAMA_COOKIE_SESI, id, {
+  tokoCookie.set(NAMA_COOKIE_SESI, uuid, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -38,18 +33,26 @@ export async function buatSesi(email: string) {
   });
 }
 
-export async function bacaSesi(): Promise<Sesi | null> {
-  const id = (await cookies()).get(NAMA_COOKIE_SESI)?.value;
-  if (!id) return null;
+export const bacaSesi = cache(async (): Promise<Sesi | null> => {
+  const uuid = (await cookies()).get(NAMA_COOKIE_SESI)?.value;
+  if (!uuid) return null;
 
-  const sesi = penyimpananSesi.get(id);
-  if (!sesi || sesi.kedaluwarsa <= Date.now()) {
-    if (sesi) penyimpananSesi.delete(id);
+  const sesi = await prisma.session.findUnique({
+    where: { uuid },
+    include: { user: { select: { email: true } } },
+  });
+
+  if (!sesi || sesi.expiresAt <= new Date()) {
+    if (sesi) await prisma.session.deleteMany({ where: { uuid } });
     return null;
   }
 
-  return sesi;
-}
+  return {
+    userId: sesi.userId,
+    email: sesi.user.email,
+    kedaluwarsa: sesi.expiresAt,
+  };
+});
 
 export async function wajibSesi() {
   const sesi = await bacaSesi();
@@ -59,8 +62,8 @@ export async function wajibSesi() {
 
 export async function hapusSesi() {
   const tokoCookie = await cookies();
-  const id = tokoCookie.get(NAMA_COOKIE_SESI)?.value;
+  const uuid = tokoCookie.get(NAMA_COOKIE_SESI)?.value;
 
-  if (id) penyimpananSesi.delete(id);
+  if (uuid) await prisma.session.deleteMany({ where: { uuid } });
   tokoCookie.delete(NAMA_COOKIE_SESI);
 }
