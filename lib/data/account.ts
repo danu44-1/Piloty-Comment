@@ -133,8 +133,15 @@ export async function ubahAkun(
   }
 }
 
-/** Delete: remove an account; related sessions cascade from the database. */
+/**
+ * Delete: remove an account and its sessions atomically.
+ * Session.userId memakai ON DELETE RESTRICT, jadi sesi dihapus lebih dulu di
+ * dalam transaksi yang sama. Jika salah satu langkah gagal, keduanya di-rollback.
+ */
 export async function hapusAkun(id: number) {
-  const hasil = await prisma.user.deleteMany({ where: { id } });
-  return hasil.count > 0;
+  return prisma.$transaction(async (tx) => {
+    await tx.session.deleteMany({ where: { userId: id } });
+    const hasil = await tx.user.deleteMany({ where: { id } });
+    return hasil.count > 0;
+  });
 }
