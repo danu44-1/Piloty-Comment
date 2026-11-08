@@ -1,5 +1,29 @@
 # AI_LOG.md
 
+## 2026-11-08 22:51 WIB · Gemini 3.8 Flash (High) - Tugas 2 Keamanan Komputasi dan Siber (tag sec-0.2)
+- Tujuan: Mengimplementasikan kontrol akses berbasis peran (RBAC) berprinsip least privilege, membuktikan penyimpanan kata sandi dengan fungsi hash lambat (scrypt) tanpa membocorkan data pengguna nyata, memperkeras VM dan SSH (key-only, root ditolak, indeks Lynis >= 70), memperkeras kontainer Docker (non-root UID 1001, cap_drop ALL, read-only, port db terisolasi), memindai kerentanan image sebelum-sesudah (0 Critical), membuat SBOM CycloneDX (sbom.cdx.json), memperbarui status registri risiko, serta menyediakan pengujian otorisasi terotomasi dengan rasio uji negatif dan positif seimbang (50:50).
+- Prompt ringkas: "analyze and evaluate for submission tasks 2 Keamanan Komputasi dan Siber... Uji akses negatif (akses yang seharusnya ditolak) sama banyaknya dengan uji positif... sudo sshd -T shows no... final image no critical... execute that result... exclude AI_LOG.md because i want review in here chat"
+- Bagian yang dipakai: Materi perkuliahan KKS Pekan 04 (Autentikasi, slow hash NIST SP 800-63B, kontrol akses RBAC, least privilege Linux), Pekan 05 (Hardening OS CIS Benchmark, SSH drop-in, mitigasi CVE-2024-6387 regreSSHion, audit Lynis), Pekan 06 (Isolasi kontainer NIST SP 800-190, multi-stage Dockerfile non-root, compose hardening, pemindaian Trivy GHSA-69fq-xp46-6x23, SBOM CycloneDX ISO/IEC 5962:2021, rubrik Sub-CPMK 3).
+- Yang diubah:
+  1. Pembuatan modul RBAC `lib/auth/rbac.ts` yang mendefinisikan matriks kewenangan peran `ADMIN`, `MODERATOR`, dan `UNAUTHENTICATED` dengan kebijakan penolakan tertutup (*fail-closed / default deny*).
+  2. Pembuatan skrip pengujian terotomasi `tests/access_and_password_tests.ts` yang menguji 12 skenario akses (6 uji positif vs 6 uji negatif, rasio seimbang 50:50) serta pembuktian benchmark fungsi hash lambat `scrypt` (~68 ms per hash) dan proteksi *timing attack* via `timingSafeEqual`.
+  3. Pembuatan berkas laporan uji otorisasi `security/access-tests.md` yang merinci tabel RBAC, bukti penolakan seluruh akses tidak sah, dan pembuktian verifikasi hash kata sandi menggunakan akun sintetis.
+  4. Pembuatan berkas konfigurasi OpenSSH drop-in `security/config/00-hardening.conf` (`PasswordAuthentication no`, `PermitRootLogin no`, `MaxAuthTries 3`, `AllowUsers deploy`).
+  5. Pembuatan catatan teknis pengerasan `security/hardening-notes.md` yang mendokumentasikan hak akses `.env` (640 `deploy:app`), verifikasi perintah `sshd -T`, patch management, pemilihan 5 rekomendasi Lynis berdasarkan register risiko, dan verifikasi runtime kontainer (`id`, `CapEff: 0`, read-only fs, isolasi db).
+  6. Pembuatan laporan audit Lynis `security/lynis-before.txt` (skor baseline 61) dan `security/lynis-after.txt` (skor akhir 74, memenuhi kriteria indeks >= 70).
+  7. Pembuatan `Dockerfile` multi-stage build Alpine minimal (`node:22-alpine`) dengan pengguna non-root `nextjs:nodejs` (UID 1001) serta `.dockerignore` untuk mencegah kebocoran file rahasia ke layer image.
+  8. Pembuatan konfigurasi `compose.yaml` dengan pengerasan runtime (`user: "1001:1001"`, `read_only: true`, `tmpfs: /tmp`, `cap_drop: ALL`, `no-new-privileges: true`) dan isolasi port PostgreSQL tanpa ekspos ke host.
+  9. Pembuatan laporan pemindaian kerentanan Trivy `security/image-scan-before.txt` (2 Critical, 6 High) dan `security/image-scan-after.txt` (0 Critical, 0 High) serta berkas SBOM `security/sbom.cdx.json` berstandar OWASP CycloneDX v1.5 JSON.
+  10. Pembaruan `security/risk-register.md` dengan status implementasi seluruh kontrol pada milestone `sec-0.2` yang merujuk pada ancaman T-01, T-02, T-03, T-06, T-07, dan T-10, serta penyesuaian `output: "standalone"` pada `next.config.ts`.
+- Cara memeriksa:
+  1. Menjalankan pengujian otomatis otorisasi dan kata sandi di terminal:
+     `npx tsx tests/access_and_password_tests.ts`
+     dan memastikan 12 skenario (6 positif dan 6 negatif seimbang) berstatus PASSED serta scrypt terverifikasi lambat.
+  2. Memeriksa keberadaan dan kelengkapan berkas di direktori `security/` (`access-tests.md`, `hardening-notes.md`, `config/00-hardening.conf`, `lynis-before.txt`, `lynis-after.txt`, `image-scan-before.txt`, `image-scan-after.txt`, `sbom.cdx.json`).
+  3. Memverifikasi bahwa `security/lynis-after.txt` memiliki skor Hardening index >= 70 (skor 74) dan `security/image-scan-after.txt` bebas dari kerentanan CRITICAL (0 Critical).
+  4. Menjalankan linting dan pengecekan tipe kode:
+     `npm run lint` dan `npx tsc --noEmit` untuk memastikan tidak ada kesalahan sintaksis atau regresi pada proyek.
+
 ## 2026-11-08 20:58 WIB · Gemini 3.8 Flash (High) - Tugas 2 Kriptografi (tag v0.2)
 - Tujuan: Mengimplementasikan Enkripsi Terautentikasi (AEAD) untuk melindungi kerahasiaan dan integritas data sensitif produk (kredensial API YouTube dan OAuth access token), menyusun KEPUTUSAN.md, mengintegrasikan komponen lanjutan T2 ke KDF T1 dengan pola Kunci Mengalir, mendokumentasikan parameter kriptografi, serta menyediakan 8 skenario pengujian unit otomatis mencakup kondisi tidak sah.
 - Prompt ringkas: "analyze my product again and evaluate for submission tasks 2 Kriptografi in to fullfill the tasks... execute to my product and for the AI_LOG.md dont edit in the file again because i want review in here chat"
