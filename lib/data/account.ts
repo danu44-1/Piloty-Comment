@@ -1,78 +1,147 @@
 import "server-only";
 
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import { AKSES_DUMMY } from "@/lib/types/access";
+import { Prisma } from "@/generated/prisma/client";
+import { prisma } from "@/lib/db/prisma";
+import {
+  buatSalt,
+  cocokKataSandi,
+  hashKataSandi,
+} from "@/lib/utils/password";
 
-type AkunTersimpan = {
+export type AkunPublik = {
+  id: number;
+  uuid: string;
   email: string;
-  salt: string;
-  kataSandiHash: string;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
-type PenyimpananAkunGlobal = typeof globalThis & {
-  __pilotyCommentAccounts?: Map<string, AkunTersimpan>;
-};
-
-const globalDenganPenyimpanan = globalThis as PenyimpananAkunGlobal;
-const akun =
-  globalDenganPenyimpanan.__pilotyCommentAccounts ??
-  new Map<string, AkunTersimpan>();
-
-globalDenganPenyimpanan.__pilotyCommentAccounts = akun;
+export type AkunTerverifikasi = Pick<AkunPublik, "id" | "uuid" | "email">;
 
 function normalisasiEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-function hashKataSandi(kataSandi: string, salt: string) {
-  return scryptSync(kataSandi, salt, 64).toString("hex");
+function keAkunPublik(akun: AkunPublik): AkunPublik {
+  return {
+    id: akun.id,
+    uuid: akun.uuid,
+    email: akun.email,
+    createdAt: akun.createdAt,
+    updatedAt: akun.updatedAt,
+  };
 }
 
-function simpanAkunAwal(email: string, kataSandi: string) {
-  const emailNormal = normalisasiEmail(email);
-  if (!emailNormal || akun.has(emailNormal)) return;
-
-  const salt = randomBytes(16).toString("hex");
-  akun.set(emailNormal, {
-    email: emailNormal,
-    salt,
-    kataSandiHash: hashKataSandi(kataSandi, salt),
-  });
-}
-
-simpanAkunAwal(AKSES_DUMMY.email, AKSES_DUMMY.kataSandi);
-
-if (process.env.DEMO_EMAIL && process.env.DEMO_KATA_SANDI) {
-  simpanAkunAwal(process.env.DEMO_EMAIL, process.env.DEMO_KATA_SANDI);
-}
-
-export function emailSudahTerdaftar(email: string) {
-  return akun.has(normalisasiEmail(email));
-}
-
-export function buatAkun(email: string, kataSandi: string) {
-  const emailNormal = normalisasiEmail(email);
-  if (emailSudahTerdaftar(emailNormal)) return false;
-
-  const salt = randomBytes(16).toString("hex");
-  akun.set(emailNormal, {
-    email: emailNormal,
-    salt,
-    kataSandiHash: hashKataSandi(kataSandi, salt),
+/** Read: check whether an account exists without exposing password data. */
+export async function emailSudahTerdaftar(email: string) {
+  const akun = await prisma.user.findUnique({
+    where: { email: normalisasiEmail(email) },
+    select: { id: true },
   });
 
-  return true;
+  return akun !== null;
 }
 
-export function verifikasiAkun(email: string, kataSandi: string) {
-  const dataAkun = akun.get(normalisasiEmail(email));
-  if (!dataAkun) return false;
+/** Create: persist a new account with a unique salt and derived password hash. */
+export async function buatAkun(email: string, kataSandi: string) {
+  const emailNormal = normalisasiEmail(email);
+  const salt = buatSalt();
 
-  const hashMasukan = Buffer.from(hashKataSandi(kataSandi, dataAkun.salt), "hex");
-  const hashTersimpan = Buffer.from(dataAkun.kataSandiHash, "hex");
+  try {
+    await prisma.user.create({
+      data: {
+        email: emailNormal,
+        salt,
+        passwordHash: hashKataSandi(kataSandi, salt),
+      },
+    });
 
-  return (
-    hashMasukan.length === hashTersimpan.length &&
-    timingSafeEqual(hashMasukan, hashTersimpan)
-  );
+    return true;
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
+/** Read: verify credentials and return only the identity needed for a session. */
+export async function verifikasiAkun(
+  email: string,
+  kataSandi: string,
+): Promise<AkunTerverifikasi | null> {
+  const akun = await prisma.user.findUnique({
+    where: { email: normalisasiEmail(email) },
+    select: { id: true, uuid: true, email: true, salt: true, passwordHash: true },
+  });
+
+  if (!akun || !cocokKataSandi(kataSandi, akun.salt, akun.passwordHash)) {
+    return null;
+  }
+
+  return { id: akun.id, uuid: akun.uuid, email: akun.email };
+}
+
+/** Read: fetch the public account record by its database id. */
+export async function ambilAkun(id: number): Promise<AkunPublik | null> {
+  const akun = await prisma.user.findUnique({
+    where: { id },
+    select: { id: true, uuid: true, email: true, createdAt: true, updatedAt: true },
+  });
+
+  return akun ? keAkunPublik(akun) : null;
+}
+
+/** Update: change an account email and/or password without returning secrets. */
+export async function ubahAkun(
+  id: number,
+  perubahan: { email?: string; kataSandi?: string },
+) {
+  const data: Prisma.UserUpdateInput = {};
+
+  if (perubahan.email !== undefined) {
+    data.email = normalisasiEmail(perubahan.email);
+  }
+
+  if (perubahan.kataSandi !== undefined) {
+    const salt = buatSalt();
+    data.salt = salt;
+    data.passwordHash = hashKataSandi(perubahan.kataSandi, salt);
+  }
+
+  try {
+    const akun = await prisma.user.update({
+      where: { id },
+      data,
+      select: { id: true, uuid: true, email: true, createdAt: true, updatedAt: true },
+    });
+
+    return keAkunPublik(akun);
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+/**
+ * Delete: remove an account and its sessions atomically.
+ * Session.userId memakai ON DELETE RESTRICT, jadi sesi dihapus lebih dulu di
+ * dalam transaksi yang sama. Jika salah satu langkah gagal, keduanya di-rollback.
+ */
+export async function hapusAkun(id: number) {
+  return prisma.$transaction(async (tx) => {
+    await tx.session.deleteMany({ where: { userId: id } });
+    const hasil = await tx.user.deleteMany({ where: { id } });
+    return hasil.count > 0;
+  });
 }

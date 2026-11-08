@@ -31,14 +31,15 @@ export async function masuk(
     };
   }
 
-  if (!verifikasiAkun(hasil.data.email, hasil.data.kataSandi)) {
+  const user = await verifikasiAkun(hasil.data.email, hasil.data.kataSandi);
+  if (!user) {
     return {
       pesan: "Email atau kata sandi salah.",
       nilai,
     };
   }
 
-  await buatSesi(hasil.data.email);
+  await buatSesi(user.id);
   redirect("/");
 }
 
