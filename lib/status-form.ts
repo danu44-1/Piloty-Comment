@@ -1,7 +1,6 @@
 export type StatusForm = {
+  sukses?: boolean;
   galat?: Record<string, string[] | undefined>;
   pesan?: string;
-  nilai?: {
-    email?: string;
-  };
+  nilai?: Record<string, string | undefined>;
 };

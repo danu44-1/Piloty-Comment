@@ -86,6 +86,23 @@ export async function verifikasiAkun(
   return { id: akun.id, uuid: akun.uuid, email: akun.email };
 }
 
+/** Read: verify whether a given password is correct for an existing user id. */
+export async function verifikasiKataSandiId(
+  id: number,
+  kataSandi: string,
+): Promise<boolean> {
+  const akun = await prisma.user.findUnique({
+    where: { id },
+    select: { salt: true, passwordHash: true },
+  });
+
+  if (!akun) {
+    return false;
+  }
+
+  return cocokKataSandi(kataSandi, akun.salt, akun.passwordHash);
+}
+
 /** Read: fetch the public account record by its database id. */
 export async function ambilAkun(id: number): Promise<AkunPublik | null> {
   const akun = await prisma.user.findUnique({

@@ -1,5 +1,27 @@
 # AI_LOG.md
 
+## 2026-11-08 19:07 WIB · Gemini 3.8 Flash (High) - Tugas Pengembangan Aplikasi Web (tag v0.2)
+- Tujuan: Melakukan audit menyeluruh terhadap pemenuhan kriteria Milestone 2 (v0.2), melengkapi seluruh siklus operasi CRUD pada kedua entitas (`User` dan `Session`) melalui antarmuka web, menerapkan validasi Zod sisi server, mengintegrasikan persistensi data, menyiapkan pengujian 10 skenario (8 CRUD + 2 relasi data), serta memperbarui dokumentasi proyek ke v0.2.
+- Prompt ringkas: "for this product, i want you to analyze my work in the all code for fulfill the tasks... then gimme update to version v0.2 for fulfill the tasks and the result of analyze... make sure the update in accordance with the product, requirements, and tasks... don't git add, commit as far as push the changes"
+- Bagian yang dipakai: Next.js 16 App Router (`app/`), arsitektur Server Actions, Prisma ORM 7 (`prisma.config.ts`, `prisma/schema.prisma`), validasi skema Zod (`lib/scheme/`), modul kriptografi KDF `scrypt` (`lib/utils/password.ts`), serta komponen antarmuka Tailwind CSS.
+- Yang diubah:
+  1. Pembuatan antarmuka dan rute baru `/settings` (`app/settings/page.tsx` dan `components/settings/SettingsPage.tsx`) untuk melengkapi operasi CRUD `User` (Read Profil, Update Email & Kata Sandi, Delete Akun Permanen) dan `Session` (Read Sesi Aktif & Relasi Multi-Sesi, Update Perpanjang Sesi +8 jam, Delete Pengakhiran Sesi).
+  2. Pembuatan Server Actions baru di `app/settings/actions.ts` (`perbaruiEmail`, `perbaruiKataSandi`, `perpanjangSesiAction`, `akhiriSesiTertentuAction`, `hapusAkunPengguna` dengan transaksi atomik `prisma.$transaction`).
+  3. Penambahan skema validasi Zod baru di `lib/scheme/account.ts` (`skemaUbahEmail`, `skemaUbahKataSandi`, `skemaHapusAkun`) dengan pesan kesalahan spesifik per kolom masukan (*field-level errors*) yang terhubung dengan atribut aksesibilitas `aria-invalid` dan `aria-describedby`.
+  4. Penyempurnaan helper akun dan sesi di `lib/data/account.ts` dan `lib/scheme/session.ts` (`verifikasiKataSandiId`, `ambilDaftarSesi`, `perpanjangSesi`, `hapusSesiById`).
+  5. Pembaruan navigasi dan layout di `constants/navigation.ts`, `components/layout/AppShell.tsx`, dan `components/layout/Header.tsx` untuk menyertakan akses menu Akun/Pengaturan.
+  6. Penambahan persistensi lokal pada `hooks/useComments.ts`, `hooks/useRules.ts`, dan `components/moderation/ModerationProvider.tsx` agar perubahan status moderasi komentar, aturan, dan kata kunci terlarang tidak hilang saat halaman dimuat ulang (*page reload*).
+  7. Penyempurnaan `prisma/seed.ts` agar idempoten, mandiri, dan otomatis membuat data demo sintetis `demo@piloty.test` beserta relasi sesinya ke database PostgreSQL.
+  8. Pembuatan dokumen pengujian komprehensif `docs/testing/skenario-pengujian-v0.2.md` yang memuat 10 skenario uji (8 CRUD + 2 Relasi Data) dengan hasil 100% lulus, 4 bukti penolakan validasi server, dan bukti persistensi PostgreSQL.
+  9. Pembaruan total berkas `README.md` mencakup tabel perkembangan fitur v0.1 ke v0.2, diagram relasi database, matriks pemetaan CRUD, dan panduan menjalankan aplikasi, serta kenaikan versi di `package.json` ke `0.2.0`.
+- Cara memeriksa:
+  1. Menjalankan pemeriksaan tipe TypeScript `node node_modules/typescript/bin/tsc --noEmit` untuk memastikan tidak ada kesalahan kompilasi (exit code 0).
+  2. Menjalankan `npm run db:seed` untuk memverifikasi proses seeding data sintetis berjalan idempoten dan mengisi kedua entitas berelasi di PostgreSQL.
+  3. Membuka rute `/settings` di peramban web dan menguji formulir pembaruan email, pembaruan kata sandi, perpanjangan durasi sesi, serta pengakhiran sesi untuk memastikan perubahan data langsung tersimpan secara persisten di database.
+  4. Menguji masukan tidak valid pada formulir untuk memverifikasi penolakan dari validasi Zod sisi server dan kemunculan pesan galat spesifik pada field terkait.
+  5. Menjalankan `git status` untuk memastikan seluruh perubahan berada dalam *working tree* dan belum di-*commit*.
+
+
 ## 2026-10-13 21:18 WIB · Gemini 3.1 Pro - Tugas Keamanan Komputasi dan Siber (tag sec-0.1)
 - Tujuan: Mengidentifikasi aset, membuat DFD, merumuskan 10 ancaman STRIDE, serta menyusun risk register untuk Piloty Comment.
 - Prompt ringkas: "Perbaruan asset-inventory.md dan dfd.md sesuai produk... Gambar DFD dengan ID elemen... Tulis minimal 10 threat STRIDE... Nilai kemungkinan... pilih 5 prioritas di risk-register.md... Beri penanda sec-0.1"
