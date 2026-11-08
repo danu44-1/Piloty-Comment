@@ -1,5 +1,19 @@
 # AI_LOG.md
 
+## 2026-11-08 20:58 WIB · Gemini 3.8 Flash (High) - Tugas 2 Kriptografi (tag v0.2)
+- Tujuan: Mengimplementasikan Enkripsi Terautentikasi (AEAD) untuk melindungi kerahasiaan dan integritas data sensitif produk (kredensial API YouTube dan OAuth access token), menyusun KEPUTUSAN.md, mengintegrasikan komponen lanjutan T2 ke KDF T1 dengan pola Kunci Mengalir, mendokumentasikan parameter kriptografi, serta menyediakan 8 skenario pengujian unit otomatis mencakup kondisi tidak sah.
+- Prompt ringkas: "analyze my product again and evaluate for submission tasks 2 Kriptografi in to fullfill the tasks... execute to my product and for the AI_LOG.md dont edit in the file again because i want review in here chat"
+- Bagian yang dipakai: Materi perkuliahan Kriptografi Minggu 04 (AES, mode operasi, bahaya nonce-reuse), Minggu 05 (AEAD AES-GCM, HMAC, AAD, fail-closed), Minggu 06 (pola integrasi Kunci Mengalir, validasi masukan allowlist, pengelolaan kunci di luar repositori, rubrik R2).
+- Yang diubah:
+  1. Pembuatan berkas `KEPUTUSAN.md` di root repositori dengan pola "kebutuhan ➔ mekanisme ➔ alasan", spesifikasi parameter kriptografi terdokumentasi (kunci 256-bit, nonce 96-bit CSPRNG, tag 128-bit, AAD context binding), dan analisis penanganan masukan gagal tertutup (*fail-closed*).
+  2. Pembuatan modul `crypto/aead_crypto.py` yang mengimpor `AuthCrypto` dari Tugas 1 (`crypto/core_crypto.py`) untuk menurunkan kunci simetris 256-bit via PBKDF2 (pola Kunci Mengalir), mengimplementasikan enkripsi/dekripsi AEAD (AES-256-GCM), membangkitkan nonce segar unik per enkripsi, dan mengikat AAD identitas kanal/publisher.
+  3. Pembuatan berkas pengujian `crypto/test_aead_crypto.py` dengan 8 skenario pengujian unit otomatis (uji positif, penolakan modifikasi ciphertext, penolakan tag rusak, penolakan kunci salah, penolakan AAD tidak cocok, uji keunikan nonce, uji ketergantungan sambungan T1➔T2, dan uji allowlist masukan).
+- Cara memeriksa:
+  1. Memverifikasi keberadaan berkas `KEPUTUSAN.md`, `crypto/aead_crypto.py`, dan `crypto/test_aead_crypto.py`.
+  2. Menjalankan pengujian unit otomatis melalui terminal:
+     `py -m unittest crypto.test_aead_crypto -v`
+  3. Memastikan seluruh 8 skenario pengujian lulus 100% dan kondisi tidak sah ditolak dengan `AuthenticationError` / `CryptoValidationError`.
+
 ## 2026-11-08 19:07 WIB · Gemini 3.8 Flash (High) - Tugas Pengembangan Aplikasi Web (tag v0.2)
 - Tujuan: Melakukan audit menyeluruh terhadap pemenuhan kriteria Milestone 2 (v0.2), melengkapi seluruh siklus operasi CRUD pada kedua entitas (`User` dan `Session`) melalui antarmuka web, menerapkan validasi Zod sisi server, mengintegrasikan persistensi data, menyiapkan pengujian 10 skenario (8 CRUD + 2 relasi data), serta memperbarui dokumentasi proyek ke v0.2.
 - Prompt ringkas: "for this product, i want you to analyze my work in the all code for fulfill the tasks... then gimme update to version v0.2 for fulfill the tasks and the result of analyze... make sure the update in accordance with the product, requirements, and tasks... don't git add, commit as far as push the changes"
