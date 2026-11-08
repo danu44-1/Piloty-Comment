@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { useComments } from "@/hooks/useComments";
 import { useRules } from "@/hooks/useRules";
 import { useModeration } from "@/hooks/useModeration";
@@ -8,8 +8,6 @@ import { useToast } from "@/hooks/useToast";
 import { initialBlockedWords } from "@/lib/data/keywords";
 import { isDuplicateKeyword, normalizeKeyword } from "@/lib/validation";
 import type { CommentStatus } from "@/lib/types/moderation";
-
-const KEYWORDS_STORAGE_KEY = "piloty_persisted_keywords";
 
 const ModerationContext = createContext<ReturnType<typeof useModerationState> | null>(null);
 
@@ -20,38 +18,25 @@ function useModerationState() {
   const toast = useToast();
   const [keywords, setKeywords] = useState<string[]>(initialBlockedWords);
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(KEYWORDS_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setKeywords(parsed);
-        }
-      }
-    } catch {
-      // Abaikan galat storage
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(KEYWORDS_STORAGE_KEY, JSON.stringify(keywords));
-    } catch {
-      // Abaikan galat storage
-    }
-  }, [keywords]);
-
-  const counts = useMemo(() => ({
-    total: commentsState.comments.length,
-    blocked: commentsState.comments.filter((c) => c.status === "Blocked").length,
-    pending: commentsState.comments.filter((c) => c.status === "Pending").length,
-    allowed: commentsState.comments.filter((c) => c.status === "Allowed").length,
-  }), [commentsState.comments]);
+  const counts = useMemo(
+    () => ({
+      total: commentsState.comments.length,
+      blocked: commentsState.comments.filter((c) => c.status === "Blocked").length,
+      pending: commentsState.comments.filter((c) => c.status === "Pending").length,
+      allowed: commentsState.comments.filter((c) => c.status === "Allowed").length,
+    }),
+    [commentsState.comments],
+  );
 
   function updateComment(id: number, status: CommentStatus) {
     commentsState.updateComment(id, status);
-    toast.showNotice(status === "Blocked" ? "Comment blocked successfully." : status === "Allowed" ? "Comment approved successfully." : "Comment moved to pending review.");
+    toast.showNotice(
+      status === "Blocked"
+        ? "Comment blocked successfully."
+        : status === "Allowed"
+          ? "Comment approved successfully."
+          : "Comment moved to pending review.",
+    );
   }
 
   function addKeyword(value: string) {
@@ -67,7 +52,13 @@ function useModerationState() {
   }
 
   function runScan() {
-    moderation.runScan(commentsState.comments, rulesState.rules, keywords, commentsState.setComments, toast.showNotice);
+    moderation.runScan(
+      commentsState.comments,
+      rulesState.rules,
+      keywords,
+      commentsState.setComments,
+      toast.showNotice,
+    );
   }
 
   return {
