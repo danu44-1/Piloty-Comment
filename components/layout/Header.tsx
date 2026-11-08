@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useModerationContext } from "@/components/moderation/ModerationProvider";
 import { keluar } from "@/app/auth/login/actions";
 
@@ -28,6 +29,11 @@ export default function Header({ title, tab }: { title: string; tab: string }) {
 					className="rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-red-200 transition hover:bg-red-700 disabled:opacity-60">
 					{scanning ? "Scanning..." : "↻ Run scan"}
 				</button>
+				<Link
+					href="/settings"
+					className="rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-semibold text-slate-600 transition hover:border-red-200 hover:text-red-600">
+					👤 Akun
+				</Link>
 				<form action={keluar}>
 					<button
 						type="submit"

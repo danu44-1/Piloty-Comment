@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useComments } from "@/hooks/useComments";
 import { useRules } from "@/hooks/useRules";
 import { useModeration } from "@/hooks/useModeration";
@@ -9,6 +9,8 @@ import { initialBlockedWords } from "@/lib/data/keywords";
 import { isDuplicateKeyword, normalizeKeyword } from "@/lib/validation";
 import type { CommentStatus } from "@/lib/types/moderation";
 
+const KEYWORDS_STORAGE_KEY = "piloty_persisted_keywords";
+
 const ModerationContext = createContext<ReturnType<typeof useModerationState> | null>(null);
 
 function useModerationState() {
@@ -16,7 +18,29 @@ function useModerationState() {
   const rulesState = useRules();
   const moderation = useModeration();
   const toast = useToast();
-  const [keywords, setKeywords] = useState(initialBlockedWords);
+  const [keywords, setKeywords] = useState<string[]>(initialBlockedWords);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(KEYWORDS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setKeywords(parsed);
+        }
+      }
+    } catch {
+      // Abaikan galat storage
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(KEYWORDS_STORAGE_KEY, JSON.stringify(keywords));
+    } catch {
+      // Abaikan galat storage
+    }
+  }, [keywords]);
 
   const counts = useMemo(() => ({
     total: commentsState.comments.length,

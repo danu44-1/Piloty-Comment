@@ -15,16 +15,11 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  const email = process.env.DEMO_EMAIL?.trim().toLowerCase();
-  const kataSandi = process.env.DEMO_KATA_SANDI;
-
-  if (!email || !kataSandi) {
-    console.log("DEMO_EMAIL dan DEMO_KATA_SANDI kosong; seed dilewati.");
-    return;
-  }
+  const email = process.env.DEMO_EMAIL?.trim().toLowerCase() || "demo@piloty.test";
+  const kataSandi = process.env.DEMO_KATA_SANDI || "DemoPassword123!";
 
   const salt = buatSalt();
-  await prisma.user.upsert({
+  const user = await prisma.user.upsert({
     where: { email },
     update: {},
     create: {
@@ -34,7 +29,23 @@ async function main() {
     },
   });
 
-  console.log(`Akun demo tersedia untuk ${email}.`);
+  console.log(`Akun demo sintetis tersedia: ${email} (ID: ${user.id}).`);
+
+  // Seeding relasi entitas: memastikan ada sesi sintetis demo terkait
+  const sesiAda = await prisma.session.findFirst({
+    where: { userId: user.id },
+  });
+
+  if (!sesiAda) {
+    const kedaluwarsa = new Date(Date.now() + 8 * 60 * 60 * 1000);
+    await prisma.session.create({
+      data: {
+        userId: user.id,
+        expiresAt: kedaluwarsa,
+      },
+    });
+    console.log(`Sesi demo sintetis berhasil dibuat untuk user ID: ${user.id}.`);
+  }
 }
 
 main()

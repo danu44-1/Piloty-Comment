@@ -13,6 +13,8 @@ function getPageMeta(pathname: string) {
 	if (pathname === "/video") return { title: "Video Library", tab: "Videos" };
 	if (pathname.startsWith("/video/"))
 		return { title: "Video Details", tab: "Videos" };
+	if (pathname === "/settings")
+		return { title: "Account & Sessions", tab: "Account" };
 	return { title: "Overview", tab: "Overview" };
 }
 
