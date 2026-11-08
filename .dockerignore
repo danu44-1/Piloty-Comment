@@ -1,0 +1,18 @@
+# Dockerignore - Pencegahan Kebocoran Rahasia (T-07)
+.git
+.gitignore
+.env
+.env.*
+node_modules
+.next
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+README.md
+AI_LOG.md
+KEPUTUSAN.md
+crypto/
+docs/
+tests/
+security/
+*.log

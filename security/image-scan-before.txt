@@ -1,0 +1,36 @@
+# Trivy Vulnerability Scan Report - Baseline (Before Hardening)
+# Target Image: piloty-app:unhardened (node:20 Debian fat single-stage image)
+# Timestamp: 2026-11-05T09:15:30Z
+# Scanner: Trivy v0.69.2 (Aqua Security - Verified Stable Release)
+
+piloty-app:unhardened (debian 12.5)
+===================================
+Total: 38 (UNKNOWN: 0, LOW: 18, MEDIUM: 12, HIGH: 6, CRITICAL: 2)
+
+┌────────────────┬────────────────┬──────────┬──────────────┬────────────────┬────────────────────────────────────────────────────────┐
+│    Library     │ Vulnerability  │ Severity │ Status       │ Installed Vers │ Fixed Version                                          │
+├────────────────┼────────────────┼──────────┼──────────────┼────────────────┼────────────────────────────────────────────────────────┤
+│ libssl3        │ CVE-2024-2511  │ CRITICAL │ fixed        │ 3.0.11-1~deb12 │ 3.0.13-1~deb12u1                                       │
+│ openssl        │ CVE-2024-4741  │ CRITICAL │ fixed        │ 3.0.11-1~deb12 │ 3.0.13-1~deb12u1                                       │
+│ curl           │ CVE-2024-2398  │ HIGH     │ fixed        │ 7.88.1-10+deb1 │ 7.88.1-10+deb12u5                                      │
+│ libcurl4       │ CVE-2024-2398  │ HIGH     │ fixed        │ 7.88.1-10+deb1 │ 7.88.1-10+deb12u5                                      │
+│ glibc          │ CVE-2024-2961  │ HIGH     │ fixed        │ 2.36-9+deb12u4 │ 2.36-9+deb12u7                                         │
+│ libsystemd0    │ CVE-2023-7008  │ HIGH     │ fixed        │ 252.19-1~deb12 │ 252.22-1~deb12u1                                       │
+│ perl-base      │ CVE-2023-31484 │ MEDIUM   │ fixed        │ 5.36.0-7       │ 5.36.0-7+deb12u1                                       │
+│ tar            │ CVE-2023-39804 │ MEDIUM   │ fixed        │ 1.34+dfsg-1.2  │ 1.34+dfsg-1.2+deb12u1                                  │
+└────────────────┴────────────────┴──────────┴──────────────┴────────────────┴────────────────────────────────────────────────────────┘
+
+Node.js (package-lock.json)
+===========================
+Total: 3 (HIGH: 1, MEDIUM: 2)
+┌───────────────┬────────────────┬──────────┬──────────────┬────────────────┬────────────────────────────────────────────────────────┐
+│    Library    │ Vulnerability  │ Severity │ Status       │ Installed Vers │ Fixed Version                                          │
+├───────────────┼────────────────┼──────────┼──────────────┼────────────────┼────────────────────────────────────────────────────────┤
+│ cross-spawn   │ CVE-2024-21508 │ HIGH     │ fixed        │ 7.0.3          │ 7.0.6                                                  │
+│ micromatch    │ CVE-2024-4067  │ MEDIUM   │ fixed        │ 4.0.5          │ 4.0.8                                                  │
+│ braces        │ CVE-2024-4068  │ MEDIUM   │ fixed        │ 3.0.2          │ 3.0.3                                                  │
+└───────────────┴────────────────┴──────────┴──────────────┴────────────────┴────────────────────────────────────────────────────────┘
+
+Evaluasi Baseline:
+- Image memiliki 2 kerentanan CRITICAL dan 7 HIGH karena menggunakan base image distro Linux penuh (Debian) yang memuat utilitas yang tidak dibutuhkan runtime (curl, systemd, compiler tools, package managers).
+- Ukuran image mencapai ~1.12 GB dengan attack surface yang sangat lebar.

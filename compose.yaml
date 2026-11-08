@@ -1,0 +1,63 @@
+# compose.yaml
+# Konfigurasi Hardening Runtime Docker Compose - Piloty Comment
+# Rujukan: CIS Docker Benchmark v1.6.0 & NIST SP 800-190
+# Tag Milestone: sec-0.2 (Tugas 2 KKS)
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: piloty-app
+    restart: unless-stopped
+    # 1. Jalankan proses sebagai non-root (UID:GID 1001:1001)
+    user: "1001:1001"
+    # 2. Filesystem kontainer bersifat read-only untuk mencegah malware / webshell persistence
+    read_only: true
+    # 3. Mount tmpfs hanya untuk file temporer yang aman di RAM
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    # 4. Buang seluruh Linux capabilities (Least privilege kernel boundary)
+    cap_drop:
+      - ALL
+    # 5. Mencegah eskalasi hak istimewa via program setuid di dalam kontainer
+    security_opt:
+      - no-new-privileges:true
+    env_file:
+      - .env
+    ports:
+      # Port aplikasi web dipublikasikan hanya ke localhost/reverse proxy
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal_network
+
+  db:
+    image: postgres:17-alpine
+    container_name: piloty-db
+    restart: unless-stopped
+    # Port basis data TIDAK DIPUBLIKASIKAN ke host (Mencegah serangan jaringan eksternal T-06)
+    # Tanpa direktif 'ports': basis data hanya dapat dijangkau dari dalam Compose network
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Januari04.}
+      POSTGRES_DB: ${POSTGRES_DB:-piloty}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d piloty"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal_network
+
+networks:
+  internal_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

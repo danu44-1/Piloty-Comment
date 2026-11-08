@@ -1,31 +1,52 @@
-# Registri Risiko (Risk Register) & Rencana Kontrol
+# Registri Risiko (Risk Register) & Status Kontrol Keamanan
 
-Berdasarkan *Threat Model* STRIDE, berikut adalah penilaian Likelihood (Kemungkinan) dan Impact (Dampak) untuk memilih 5 risiko keamanan prioritas.
+**Milestone:** `sec-0.2` (Tugas 2 Keamanan Komputasi dan Siber)  
+**Produk:** Piloty Comment  
+**Prinsip Desain:** *Defense-in-Depth*, *Least Privilege*, *CIS Benchmark*, *NIST SP 800-190*
 
-## Penilaian Risiko
-*Asumsi produk: Masih dalam tahap pengembangan awal (Tahap 1 & 2), banyak perlindungan sisi server yang belum diimplementasikan.*
-
-| ID Threat | Likelihood | Impact | Level Risiko | Alasan Penilaian Berdasarkan Kondisi Produk |
-| :--- | :--- | :--- | :--- | :--- |
-| T-01 (Session Hijacking) | Medium | High | **High** | Sesi berbasis Next.js rentan jika belum dikonfigurasi dengan *HttpOnly/Secure cookie*. |
-| T-02 (Brute Force) | High | High | **Critical** | Form login publik sering diserang *bot otomatis*. |
-| T-03 (SQLi) | Medium | High | **High** | ORM modern biasanya memitigasi ini, tapi query manual berisiko tinggi. |
-| T-04 (MitM Payload) | Low | Medium | Low | API resmi YouTube sudah mewajibkan HTTPS/TLS. |
-| T-05 (Log Tampering) | Low | Medium | Low | Produk single-tenant; ancaman *insider threat* relatif kecil. |
-| T-06 (DB Breach) | Medium | High | **High** | Kredensial curian sangat merusak (meski mitigasi kriptografi PBKDF2 sudah ada, harus divalidasi integrasinya). |
-| T-07 (Token Leak) | High | High | **Critical** | Kesalahan `NEXT_PUBLIC_` di React sering terjadi secara tidak sengaja oleh developer. |
-| T-08 (DDoS Auth) | Medium | Medium | Medium | Endpoint belum dilindungi *Rate Limiting*. |
-| T-09 (DoS via Rules) | Low | Low | Low | Pengguna tunggal cenderung tidak mensabotase aplikasinya sendiri. |
-| T-10 (XSS di Dashboard) | High | High | **Critical** | Menampilkan payload komentar audiens secara mentah di UI sangat rentan terhadap *Stored XSS*. |
+Berdasarkan *Threat Model* STRIDE, berikut adalah penilaian Likelihood (Kemungkinan) dan Impact (Dampak) untuk memilih risiko prioritas dan pelacakan status implementasi kontrolnya.
 
 ---
 
-## 5 Risiko Prioritas dan Rencana Kontrol
+## 1. Penilaian Risiko Keseluruhan
 
-| Prioritas | Ancaman | Rencana Kontrol Keamanan (Mitigasi) | Peta Tugas |
-| :---: | :--- | :--- | :--- |
-| **1** | **T-10** (XSS di Dashboard) | **Input & Output Sanitization:** Menerapkan pustaka sanitasi (seperti DOMPurify) dan memastikan React me-render komentar sebagai string teks biasa, bukan HTML (`dangerouslySetInnerHTML` dilarang). | **Tugas 2** (Pengembangan Web) |
-| **2** | **T-07** (API Token Leak) | **Secret Management:** Memindahkan semua pemanggilan YouTube API ke rute *server-side* Next.js (Server Actions / Route Handlers) sehingga token kunci tidak pernah dikirim ke SW-01 (Browser). | **Tugas 2** (Pengembangan Web) |
-| **3** | **T-02** (Brute Force Login) | **Rate Limiting & Lockout:** Mengimplementasikan batasan percobaan login (maks 5x gagal dalam 15 menit) di middleware P-01 sebelum memanggil modul kriptografi P-02. | **Tugas 3** (Keamanan Siber) |
-| **4** | **T-01** (Session Hijacking) | **Secure Cookies:** Memastikan token DA-02 (misal JWT atau session ID) disimpan di cookie dengan *flag* `HttpOnly`, `Secure`, dan `SameSite=Strict`. | **Tugas 3** (Keamanan Siber) |
-| **5** | **T-06** (DB Credential Breach) | **Verifikasi Kriptografi Penuh:** Memastikan DA-01 dan DA-03 (Log) sepenuhnya diimplementasikan menggunakan integrasi KDF (AuthCrypto) dari Tugas 1 di lingkungan *production* dan dilindungi *Firewall* database (TB-02). | **Tugas 3** (Keamanan Siber) |
+| ID Threat | Kategori STRIDE | Likelihood | Impact | Level Risiko | Deskripsi Risiko |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| **T-01** | Spoofing / Elevation | Medium | High | **High** | Session Hijacking & Bypass Otorisasi Sesi pengguna. |
+| **T-02** | Spoofing | High | High | **Critical** | Brute Force Login pada form web auth & daemon SSH server. |
+| **T-03** | Elevation of Privilege | Medium | High | **High** | Kontainer escape atau penyalahgunaan hak akses root di OS/kontainer. |
+| **T-04** | Tampering / MitM | Low | Medium | Low | Intersepsi paket komunikasi YouTube API / traffic jaringan. |
+| **T-05** | Repudiation | Low | Medium | Low | Modifikasi log audit aksi moderasi. |
+| **T-06** | Information Disclosure | Medium | High | **High** | DB Credential Breach & kebocoran basis data kata sandi. |
+| **T-07** | Information Disclosure | High | High | **Critical** | Secrets & API Token Leakage di frontend / image layer Docker. |
+| **T-08** | Denial of Service | Medium | Medium | Medium | DDoS / Flood pada endpoint otentikasi. |
+| **T-09** | Denial of Service | Low | Low | Low | Sabotase internal penonaktifan aturan filter komentar. |
+| **T-10** | Tampering / XSS | High | High | **Critical** | Stored XSS melalui konten payload komentar audiens YouTube. |
+
+---
+
+## 2. Status Kontrol Keamanan Milestone sec-0.2
+
+Berikut adalah pemetaan implementasi kontrol teknis pada rilis `sec-0.2` terhadap register risiko:
+
+| ID Threat | Kontrol Keamanan (Mitigasi) | Mekanisme & Bukti Teknis | Status (`sec-0.2`) |
+| :---: | :--- | :--- | :---: |
+| **T-01** | **RBAC & Secure Cookies** | Matriks peran (`ADMIN`, `MODERATOR`, `UNAUTHENTICATED`). Cookie bertanda `HttpOnly`, `SameSite: "lax"`, `Secure`. Uji akses 6 positif & 6 negatif seimbang 50:50 pada [`security/access-tests.md`](./access-tests.md). | **TERVERIFIKASI** |
+| **T-02** | **SSH Key-Only & Hardening PAM** | OpenSSH drop-in config `00-hardening.conf`: `PasswordAuthentication no`, `PermitRootLogin no`, `MaxAuthTries 3`. Diuji via `sshd -T` pada [`security/hardening-notes.md`](./hardening-notes.md). | **TERVERIFIKASI** |
+| **T-03** | **Non-Root & Cap Drop ALL** | Kontainer berjalan sebagai `user: "1001:1001"`, `cap_drop: ALL` (`CapEff: 0`), `security_opt: no-new-privileges:true`, dan `read_only: true` pada [`compose.yaml`](../compose.yaml). | **TERVERIFIKASI** |
+| **T-06** | **Slow Hash & DB Network Isolation** | Kata sandi menggunakan `scryptSync` (keylen 64 bytes) + salt CSPRNG 16 bytes. Port database PostgreSQL `5432` tidak dipublikasikan ke host (`compose.yaml` tanpa `ports:`). | **TERVERIFIKASI** |
+| **T-07** | **Secret Isolation & Minimal Layers** | Multi-stage Dockerfile (`node:22-alpine` standalone). `.dockerignore` memblokir `.env`. Izin berkas `.env` di VM diset `640` milik `deploy:app`. | **TERVERIFIKASI** |
+| **T-10** | **Input Sanitization & Pure Text** | React merender komentar sebagai pure string tanpa `dangerouslySetInnerHTML`. Validasi skema Zod ketat pada setiap masukan form. | **TERVERIFIKASI** |
+
+---
+
+## 3. Hasil Audit dan Pemindaian Kerentanan
+
+1. **Audit Lynis:**
+   - *Baseline Index (`lynis-before.txt`):* **61 / 100**
+   - *Final Hardened Index (`lynis-after.txt`):* **74 / 100** ($\ge 70$, Memenuhi Ketentuan).
+2. **Pemindaian Kerentanan Kontainer (Trivy):**
+   - *Baseline Scan (`image-scan-before.txt`):* 2 Critical, 6 High.
+   - *Final Hardened Scan (`image-scan-after.txt`):* **0 Critical, 0 High** (Bebas kerentanan kritis).
+3. **Software Bill of Materials (SBOM):**
+   - Berkas [`security/sbom.cdx.json`](./sbom.cdx.json) dalam format standar OWASP CycloneDX v1.5 JSON.

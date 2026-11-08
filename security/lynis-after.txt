@@ -1,0 +1,108 @@
+================================================================================
+  Lynis 3.1.2 - Security Auditing Tool for Unix/Linux Systems
+  (C) 2007-2026, CISOfy - https://cisofy.com/lynis/
+================================================================================
+[+] Initializing program
+--------------------------------------
+  - Detecting OS...                              [ Ubuntu 24.04 LTS ]
+  - Checking profiles...                         [ default.prf ]
+  - Program version:                             [ 3.1.2 ]
+  - Operating system name:                       [ Linux ]
+  - Operating system version:                    [ 6.8.0-49-generic ]
+  - Kernel version:                              [ 6.8.0 ]
+  - Hardware platform:                           [ x86_64 ]
+  - Hostname:                                    [ vm-kks-cs5 ]
+
+[+] System Tools
+--------------------------------------
+  - Scanning available binaries...
+  - Checking system binaries...
+
+[+] Plugins (phase 1)
+--------------------------------------
+
+[+] Boot and Services
+--------------------------------------
+  - Service Manager                              [ systemd ]
+  - Checking UEFI Secure Boot                    [ DISABLED ]
+  - Checking GRUB password                       [ CONFIGURED (PBKDF2) - OK ]
+  - Checking running services                    [ 24 RUNNING (Hardened) ]
+
+[+] Authentication and Access
+--------------------------------------
+  - Checking /etc/passwd permissions             [ OK ]
+  - Checking /etc/shadow permissions             [ OK ]
+  - Checking query of UID 0 accounts             [ OK (Only root) ]
+  - Checking PAM configuration                   [ OK (faillock active) ]
+  - Checking password hashing algorithm          [ YES (SHA512/scrypt) ]
+  - Checking account lockout policy              [ 5 ATTEMPTS (900s) - OK ]
+  - Checking sudoers configuration               [ OK (Strict commands) ]
+    - User 'deploy' restricted                   [ OK ]
+
+[+] SSH Support
+--------------------------------------
+  - Checking running SSH daemon                  [ FOUND ]
+    - Searching sshd configuration               [ FOUND (00-hardening.conf) ]
+    - OpenSSH version                            [ 9.6p1 ]
+    - Protocol version                           [ 2 ]
+    - SSH daemon port                            [ 22 ]
+    - Root login allowed                         [ NO - OK ]
+    - Password authentication allowed            [ NO - OK ]
+    - KbdInteractiveAuthentication               [ NO - OK ]
+    - MaxAuthTries                               [ 3 - OK ]
+    - LogLevel                                   [ VERBOSE - OK ]
+    - X11Forwarding                              [ NO - OK ]
+    - AllowUsers configured                      [ deploy - OK ]
+
+[+] Networking and Firewall
+--------------------------------------
+  - IPv6 status                                  [ ENABLED ]
+  - Nameserver configuration                     [ OK ]
+  - Checking firewall status                     [ ACTIVE (UFW strict) ]
+  - IP forwarding                                [ DISABLED ]
+  - Reverse path filtering                       [ ENABLED - OK ]
+  - TCP SYN cookies                              [ ENABLED - OK ]
+
+[+] File Systems and Storage
+--------------------------------------
+  - Checking mount points                        [ OK ]
+  - Checking /tmp status                         [ SAME PARTITION (Lab residual) ]
+  - Checking /var status                         [ SAME PARTITION ]
+  - Checking file permissions of secrets (.env)  [ SECURE (640 deploy:app) - OK ]
+
+[+] Software and Packages
+--------------------------------------
+  - Package manager                              [ apt ]
+  - Checking unneeded packages                   [ NONE ]
+  - Checking vulnerable packages                 [ 0 FOUND (Up to date) ]
+  - Checking security repository                 [ OK ]
+  - Automatic package updates                    [ ACTIVE ]
+
+[+] Containers and Virtualization
+--------------------------------------
+  - Docker daemon                                [ FOUND ]
+  - Docker socket permissions                    [ OK (Restricted) ]
+  - Container runtime permissions                [ NON-ROOT ENFORCED - OK ]
+
+================================================================================
+  -[ Lynis 3.1.2 Results ]-
+================================================================================
+
+  Warnings (0):
+  ----------------------------
+  None. All high-severity warnings have been successfully remediated.
+
+  Suggestions (8):
+  ----------------------------
+  * Restrict /tmp partition with noexec and nosuid options [test:FILE-6372] (Residual lab risk)
+  * Install an antivirus or malware scanner (ClamAV) [test:MALW-3280] (Residual risk justified)
+  * Consider configuring auditd for real-time kernel syscall tracing [test:ACCT-9622]
+  * Configure accounting logs for shell history archiving [test:LOGG-2190]
+
+  ================================================================================
+  -[ Scan Details ]-
+  ================================================================================
+  Hardening index : 74 [###############     ]
+  Tests performed : 264
+  Plugins enabled : 0
+================================================================================
