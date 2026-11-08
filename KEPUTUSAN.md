@@ -78,3 +78,4 @@ Alur integrasi komponen di dalam repositori:
 
 Uji yang melintasi sambungan (`crypto/test_aead_crypto.py`):
 Jika sambungan ke KDF T1 diubah (misalnya iterasi atau algoritma tidak sesuai), kunci yang dihasilkan akan berbeda, sehingga verifikasi tag pada T2 akan gagal dan melempar `AuthenticationError`.
+* ![AEAD](../Project_PemWeb_Kriptografi_Keamanan/docs/image/testing/uji_AEAD_encrypt.png)
